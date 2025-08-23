@@ -5,7 +5,7 @@ name: Rust
 on:
   push:
     branches:
-      -main 
+      - main 
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
