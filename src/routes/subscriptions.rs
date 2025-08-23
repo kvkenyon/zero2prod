@@ -21,8 +21,6 @@ VALUES ($1, $2, $3, $4)
         form.name,
         Utc::now()
     )
-    // We use `get_ref` to get an immutable reference to the `PgConnection`
-    // wrapped by `web::Data`.
     .execute(pool.get_ref())
     .await
     {
