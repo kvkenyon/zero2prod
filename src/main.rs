@@ -26,6 +26,7 @@ async fn main() -> Result<(), std::io::Error> {
         configuration.email_client.base_url,
         sender_email,
         configuration.email_client.authorization_token,
+        std::time::Duration::from_millis(configuration.email_client.timeout_milliseconds),
     );
     run(listener, connection_pool, email_client)?.await
 }
