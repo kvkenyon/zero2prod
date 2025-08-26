@@ -9,3 +9,7 @@ database:
   password: "password"
   database_name: "newsletter"
 
+email_client:
+  sender_email: "kevin@turing.club"
+  base_url: "localhost"
+  authorization_token: "my-secret-token"
