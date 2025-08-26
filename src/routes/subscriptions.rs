@@ -5,6 +5,8 @@ use std::error::Error;
 use tracing_error::SpanTrace;
 use uuid::Uuid;
 
+use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
+
 #[derive(Debug)]
 pub struct SubscriptionError {
     message: String,
@@ -46,22 +48,37 @@ pub struct FormData {
     )
 )]
 pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
-    match insert_subscription(&pool, &form).await {
+    let name = match SubscriberName::parse(form.0.name) {
+        Ok(name) => name,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    let email = match SubscriberEmail::parse(form.0.email) {
+        Ok(email) => email,
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    let new_subscriber = NewSubscriber { name, email };
+    match insert_subscription(&pool, &new_subscriber).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }
 
-#[tracing::instrument(name = "Saving new subscriber details in database", skip(pool, form))]
-async fn insert_subscription(pool: &PgPool, form: &FormData) -> Result<(), SubscriptionError> {
+#[tracing::instrument(
+    name = "Saving new subscriber details in database",
+    skip(pool, new_subscriber)
+)]
+async fn insert_subscription(
+    pool: &PgPool,
+    new_subscriber: &NewSubscriber,
+) -> Result<(), SubscriptionError> {
     sqlx::query!(
         r#"
 INSERT INTO subscriptions (id, email, name, subscribed_at)
 VALUES ($1, $2, $3, $4)
 "#,
         Uuid::new_v4(),
-        form.email,
-        form.name,
+        new_subscriber.email.as_ref(),
+        new_subscriber.name.as_ref(),
         Utc::now()
     )
     .execute(pool)

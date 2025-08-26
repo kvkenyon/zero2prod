@@ -26,7 +26,8 @@ tracing-actix-web = "0.7"
 secrecy = { version = "0.8", features = ["serde"]}
 tracing-error =  "0.2.1"
 serde-aux = "4"
-
+unicode-segmentation = "1"
+validator = "0.18"
 
 [dependencies.sqlx]
 version = "0.8"
@@ -42,4 +43,8 @@ features = [
 
 [dev-dependencies]
 reqwest = "0.12"
-
+claims = "0.7"
+quickcheck = "1.0.3"
+quickcheck_macros = "1"
+rand = "0.8"
+fake = "2.9"

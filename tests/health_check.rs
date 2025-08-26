@@ -110,6 +110,37 @@ async fn subscribe_returns_a_400_for_invalid_form_data() {
     }
 }
 
+#[tokio::test]
+async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    // Act
+    let test_cases = vec![
+        ("name=&email=kevin%40turing.club", "empty name"),
+        ("name=Kevin&email=not-an-email", "invalid email"),
+        ("name=kevin&email=", "missing name"),
+    ];
+
+    for (body, desc) in test_cases {
+        let response = client
+            .post(format!("{}/subscriptions", app.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+        // Assert
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API did not return a 400 Bad Request when the payload was {}.",
+            desc
+        );
+    }
+}
+
 #[allow(clippy::let_underscore_future)]
 async fn spawn_app() -> TestApp {
     LazyLock::force(&TRACING);
