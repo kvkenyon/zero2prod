@@ -22,6 +22,12 @@ services:
       - key: APP_APPLICATION__BASE_URL
         scope: RUN_TIME
         value: ${APP_URL}
+      - key: APP_EMAIL_CLIENT__AUTHORIZATION_TOKEN
+        value: >-
+          EV[1:IKAFwb/07b4rAYmvEO5iDeEPT3ONL/dP:4PA6cJjRaFqw33TVMkVxSa0WpLRgVr0M0hBYVsi6KO0rdkCTryVcYuXxkjw3jJ/JfvtC5A==]
+        type: SECRET
+        scope: RUN_AND_BUILD_TIME
+
     # Relative to the repository root
     dockerfile_path: Dockerfile
     source_dir: .
