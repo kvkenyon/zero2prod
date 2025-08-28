@@ -102,19 +102,9 @@ async fn subscribe_sends_a_confirmation_email_with_a_link() {
     test_app.post_subscriptions(body.into()).await;
 
     let email_request = &test_app.email_server.received_requests().await.unwrap()[0];
-    let body: serde_json::Value = serde_json::from_slice(&email_request.body).unwrap();
-    let get_link = |s: &str| {
-        let links: Vec<_> = linkify::LinkFinder::new()
-            .links(s)
-            .filter(|l| *l.kind() == linkify::LinkKind::Url)
-            .collect();
-        assert_eq!(links.len(), 1);
-        links[0].as_str().to_owned()
-    };
 
-    let text_link = get_link(body["TextBody"].as_str().unwrap());
-    let html_link = get_link(body["HtmlBody"].as_str().unwrap());
-    assert_eq!(text_link, html_link);
+    let confirmation_links = test_app.get_confirmation_links(email_request);
+    assert_eq!(confirmation_links.text, confirmation_links.html);
 }
 
 #[tokio::test]
@@ -132,4 +122,29 @@ async fn subscribe_persists_the_new_subscriber() {
     assert_eq!(saved.status, "pending_confirmation");
     assert_eq!(saved.email, "kvkenyon@gmail.com");
     assert_eq!(saved.name, "Kevin Kenyon");
+}
+
+#[tokio::test]
+async fn subscribe_persists_a_subscription_token_for_new_subscriber() {
+    let test_app = spawn_app().await;
+
+    let body = "name=Kevin%20Kenyon&email=kvkenyon%40gmail.com";
+    test_app.post_subscriptions(body.into()).await;
+
+    let saved = sqlx::query!("SELECT id FROM subscriptions",)
+        .fetch_one(&test_app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscription.");
+
+    let id = saved.id;
+
+    let saved = sqlx::query!(
+        "SELECT subscription_token, subscriber_id FROM subscription_tokens WHERE subscriber_id = $1",
+        id
+    )
+    .fetch_one(&test_app.db_pool)
+    .await
+    .expect("Failed to fetch saved subscription.");
+
+    assert_eq!(saved.subscriber_id, id);
 }

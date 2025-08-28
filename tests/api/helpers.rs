@@ -1,5 +1,6 @@
 //! tests/api/helper.rs
 
+use reqwest::Url;
 use secrecy::Secret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::sync::LazyLock;
@@ -25,10 +26,16 @@ static TRACING: LazyLock<()> = LazyLock::new(|| {
     }
 });
 
+pub struct ConfirmationLinks {
+    pub html: reqwest::Url,
+    pub text: reqwest::Url,
+}
+
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
     pub email_server: MockServer,
+    pub port: u16,
 }
 
 impl TestApp {
@@ -40,6 +47,27 @@ impl TestApp {
             .send()
             .await
             .expect("Failed to execute request.")
+    }
+
+    pub fn get_confirmation_links(&self, email_request: &wiremock::Request) -> ConfirmationLinks {
+        let body: serde_json::Value = serde_json::from_slice(&email_request.body).unwrap();
+        let get_link = |s: &str| {
+            let links: Vec<_> = linkify::LinkFinder::new()
+                .links(s)
+                .filter(|l| *l.kind() == linkify::LinkKind::Url)
+                .collect();
+            assert_eq!(links.len(), 1);
+            let raw_link = links[0].as_str().to_owned();
+            let mut link = Url::parse(&raw_link).unwrap();
+            assert_eq!(link.host_str().unwrap(), "127.0.0.1");
+            link.set_port(Some(self.port)).unwrap();
+            link
+        };
+
+        ConfirmationLinks {
+            html: get_link(body["HtmlBody"].as_str().unwrap()),
+            text: get_link(body["TextBody"].as_str().unwrap()),
+        }
     }
 }
 
@@ -60,6 +88,8 @@ pub async fn spawn_app() -> TestApp {
         .await
         .expect("Failed to build application server.");
 
+    let application_port = app.port();
+
     let connection_pool = get_connection_pool(&configuration.database).await;
     configure_database(&configuration.database, &connection_pool).await;
 
@@ -70,6 +100,7 @@ pub async fn spawn_app() -> TestApp {
         address,
         db_pool: connection_pool,
         email_server,
+        port: application_port,
     }
 }
 

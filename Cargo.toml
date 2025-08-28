@@ -28,6 +28,7 @@ tracing-error =  "0.2.1"
 serde-aux = "4"
 unicode-segmentation = "1"
 validator = "0.18"
+rand = { version = "0.8", features = ["std_rng"]}
 
 [dependencies.sqlx]
 version = "0.8"
@@ -51,7 +52,6 @@ features = ["json", "rustls-tls"]
 claims = "0.7"
 quickcheck = "1.0.3"
 quickcheck_macros = "1"
-rand = "0.8"
 fake = "2.9"
 tokio = { version = "1", features = ["rt", "macros"]}
 wiremock = "0.6"
