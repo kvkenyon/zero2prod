@@ -70,3 +70,30 @@ async fn clicking_confirmation_link_confirms_the_subscriber() {
     assert_eq!(saved.name, "Kevin Kenyon");
     assert_eq!(saved.email, "kvkenyon@gmail.com");
 }
+
+#[tokio::test]
+async fn confirm_fails_if_there_is_a_fatal_database_error() {
+    let test_app = spawn_app().await;
+
+    Mock::given(path("/email"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&test_app.email_server)
+        .await;
+
+    let body = "name=Kevin%20Kenyon&email=kvkenyon%40gmail.com";
+    test_app.post_subscriptions(body.into()).await;
+
+    let email_request = &test_app.email_server.received_requests().await.unwrap()[0];
+
+    let confirmation_links = test_app.get_confirmation_links(email_request);
+
+    sqlx::query!("ALTER TABLE subscription_tokens DROP COLUMN subscription_token;",)
+        .execute(&test_app.db_pool)
+        .await
+        .unwrap();
+
+    let response = reqwest::get(confirmation_links.text).await.unwrap();
+    assert_eq!(response.status().as_u16(), 500);
+}
