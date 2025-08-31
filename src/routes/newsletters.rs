@@ -1,5 +1,5 @@
 //! src/routes/newsletters.rs
-use actix_web::{HttpResponse, ResponseError, http::StatusCode, web};
+use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
 use anyhow::Context;
 use sqlx::PgPool;
 
@@ -17,10 +17,7 @@ pub struct Content {
     html: String,
 }
 
-#[tracing::instrument(
-name = "Publish a newsletter issue",
-    skip(pool, email_client),
-)]
+#[tracing::instrument(name = "Publish a newsletter issue", skip(pool, email_client))]
 pub async fn publish_newsletter(
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
@@ -76,16 +73,13 @@ impl std::fmt::Debug for PublishError {
     }
 }
 
-
-#[tracing::instrument(name="Get confirmed subscribers", skip(pool))]
+#[tracing::instrument(name = "Get confirmed subscribers", skip(pool))]
 async fn get_confirmed_subscribers(
     pool: &PgPool,
 ) -> Result<Vec<Result<ConfirmedSubscriber, anyhow::Error>>, anyhow::Error> {
-    let rows = sqlx::query!(
-        r#"SELECT email FROM subscriptions WHERE status = 'confirmed';"#
-    )
-    .fetch_all(pool)
-    .await?;
+    let rows = sqlx::query!(r#"SELECT email FROM subscriptions WHERE status = 'confirmed';"#)
+        .fetch_all(pool)
+        .await?;
 
     let confirmed_subscribers = rows
         .into_iter()
