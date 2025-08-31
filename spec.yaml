@@ -1,6 +1,7 @@
+#file: noinspection SpellCheckingInspection,SpellCheckingInspection,SpellCheckingInspection
 #! spec.yaml
 name: zero2prod
-region: nyc1 
+region: nyc1
 services:
   - name: zero2prod
     envs:
@@ -32,8 +33,8 @@ services:
     dockerfile_path: Dockerfile
     source_dir: .
     github:
-    # Depending on when you created the repository,
-    # the default branch on GitHub might have been named `master`
+      # Depending on when you created the repository,
+      # the default branch on GitHub might have been named `master`
       branch: main
       # Deploy a new version on every commit to `main`!
       # Continuous Deployment, here we come!
@@ -51,7 +52,7 @@ services:
     routes:
       - path: /
 databases:
-# PG = Postgres
+  # PG = Postgres
   - engine: PG
     # Database name
     name: newsletter

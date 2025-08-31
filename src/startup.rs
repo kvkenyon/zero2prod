@@ -35,7 +35,7 @@ impl Application {
         );
 
         let listener = TcpListener::bind(address).expect("Failed to bind port 8000.");
-        let port = listener.local_addr().unwrap().port();
+        let port = listener.local_addr()?.port();
         let server = run(
             listener,
             connection_pool,

@@ -27,8 +27,8 @@ static TRACING: LazyLock<()> = LazyLock::new(|| {
 });
 
 pub struct ConfirmationLinks {
-    pub html: reqwest::Url,
-    pub text: reqwest::Url,
+    pub html: Url,
+    pub text: Url,
 }
 
 pub struct TestApp {

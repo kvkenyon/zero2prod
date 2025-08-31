@@ -33,7 +33,7 @@ pub enum ConfirmationError {
 }
 
 impl actix_web::ResponseError for ConfirmationError {
-    fn status_code(&self) -> actix_web::http::StatusCode {
+    fn status_code(&self) -> StatusCode {
         match self {
             ConfirmationError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ConfirmationError::UnknownToken => StatusCode::UNAUTHORIZED,
