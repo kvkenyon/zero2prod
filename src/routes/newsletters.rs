@@ -1,9 +1,8 @@
 //! src/routes/newsletters.rs
-use actix_web::{http::StatusCode, web, HttpResponse, ResponseError};
+use crate::{domain::SubscriberEmail, email_client::EmailClient, routes::error_chain_fmt};
+use actix_web::{HttpResponse, ResponseError, http::StatusCode, web};
 use anyhow::Context;
 use sqlx::PgPool;
-
-use crate::{domain::SubscriberEmail, email_client::EmailClient, routes::error_chain_fmt};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Newsletter {
