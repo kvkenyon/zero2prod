@@ -1,5 +1,7 @@
 //! tests/api/helper.rs
 
+use argon2::password_hash::SaltString;
+use argon2::{Argon2, Params, PasswordHasher};
 use reqwest::Url;
 use secrecy::Secret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -31,7 +33,46 @@ pub struct ConfirmationLinks {
     pub text: Url,
 }
 
+pub struct TestUser {
+    pub user_id: Uuid,
+    pub username: String,
+    pub password: String,
+}
+
+impl TestUser {
+    pub fn generate() -> Self {
+        TestUser {
+            username: Uuid::new_v4().to_string(),
+            password: Uuid::new_v4().to_string(),
+            user_id: Uuid::new_v4(),
+        }
+    }
+
+    async fn store(&self, pool: &PgPool) {
+        let salt = SaltString::generate(&mut rand::thread_rng());
+        let password_hash = Argon2::new(
+            argon2::Algorithm::Argon2id,
+            argon2::Version::V0x13,
+            Params::new(15000, 2, 1, None).expect("Failed to build params."),
+        )
+        .hash_password(self.password.as_bytes(), &salt)
+        .unwrap()
+        .to_string();
+        sqlx::query!(
+            "INSERT INTO users (user_id, username, password_hash)
+VALUES ($1, $2, $3)",
+            self.user_id,
+            self.username,
+            password_hash
+        )
+        .execute(pool)
+        .await
+        .expect("Failed to create test users.");
+    }
+}
+
 pub struct TestApp {
+    pub user: TestUser,
     pub address: String,
     pub db_pool: PgPool,
     pub email_server: MockServer,
@@ -52,6 +93,7 @@ impl TestApp {
     pub async fn post_newsletters(&self, body: serde_json::Value) -> reqwest::Response {
         reqwest::Client::new()
             .post(format!("{}/newsletters", self.address))
+            .basic_auth(&self.user.username, Some(&self.user.password))
             .json(&body)
             .send()
             .await
@@ -105,11 +147,16 @@ pub async fn spawn_app() -> TestApp {
     let address = format!("http://127.0.0.1:{}", app.port());
     let _ = tokio::spawn(app.run_until_stopped());
 
+    // Create test user and store them in the database
+    let user = TestUser::generate();
+    user.store(&connection_pool).await;
+
     TestApp {
         address,
         db_pool: connection_pool,
         email_server,
         port: application_port,
+        user,
     }
 }
 
