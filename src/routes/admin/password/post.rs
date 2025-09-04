@@ -1,5 +1,5 @@
 //! src/routes/admin/password/post.rs
-use crate::authentication::{Credentials, validate_credentials};
+use crate::authentication::{AuthError, Credentials, validate_credentials};
 use crate::routes::admin::helpers::{e500, see_other};
 use crate::routes::get_username;
 use crate::session_state::TypedSession;
@@ -31,11 +31,11 @@ pub async fn change_password(
     web::Form(form): web::Form<FormData>,
 ) -> Result<HttpResponse, actix_web::Error> {
     // Try to get the user_id from the session (redirect to login on invalid session)
-    let user_id = if let Some(user_id) = session.get_user_id().map_err(e500)? {
-        user_id
-    } else {
+    let user_id = session.get_user_id().map_err(e500)?;
+    if user_id.is_none() {
         return Ok(see_other("/login"));
-    };
+    }
+    let user_id = user_id.unwrap();
 
     // Handle case where new passwords don't match
     if form.new_password.expose_secret() != form.verify_new_password.expose_secret() {
@@ -49,10 +49,15 @@ pub async fn change_password(
 
     // Attempt to validate the credentials
     let credentials = Credentials::new(username, form.current_password);
-    let _ = validate_credentials(credentials, &pool).await.map_err(|_| {
-        FlashMessage::error("The current password you entered is invalid").send();
-        see_other("/admin/dashboard/password")
-    });
+    if let Err(e) = validate_credentials(credentials, &pool).await {
+        return match e {
+            AuthError::InvalidCredentials(_) => {
+                FlashMessage::error("The current password you entered is invalid").send();
+                return Ok(see_other("/admin/dashboard/password"));
+            }
+            AuthError::UnexpectedError(_) => Err(e500(e)),
+        };
+    }
 
     // Set the new password
     match set_new_password(&pool, user_id, &form.new_password).await {
