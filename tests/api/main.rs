@@ -1,9 +1,9 @@
 //! tests/api/main.rs
-
 mod admin_dashboard;
 mod health_check;
 mod helpers;
 mod login;
 mod newsletter;
+mod password;
 mod subscriptions;
 mod subscriptions_confirm;

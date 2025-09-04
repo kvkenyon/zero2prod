@@ -48,7 +48,7 @@ pub async fn login(
     }
 }
 
-fn login_redirect(e: LoginError) -> InternalError<LoginError> {
+pub fn login_redirect(e: LoginError) -> InternalError<LoginError> {
     FlashMessage::error(e.to_string()).send();
     let response = HttpResponse::build(StatusCode::SEE_OTHER)
         .insert_header((LOCATION, "/login"))
