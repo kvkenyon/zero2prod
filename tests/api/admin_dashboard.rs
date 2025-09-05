@@ -28,5 +28,5 @@ pub async fn admin_page_has_link_to_change_password_page() {
 
     let page_html = app.get_admin_dashboard_html().await;
 
-    assert!(page_html.contains(r#"<a href="/admin/dashboard/password">Change password</a>"#));
+    assert!(page_html.contains(r#"<a href="/admin/password">Change password</a>"#));
 }

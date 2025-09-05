@@ -85,7 +85,7 @@ impl TestApp {
         Body: serde::Serialize,
     {
         self.api_client
-            .post(format!("{}/admin/dashboard/password", self.address))
+            .post(format!("{}/admin/password", self.address))
             .form(body)
             .send()
             .await
@@ -94,7 +94,7 @@ impl TestApp {
 
     pub async fn get_change_password(&self) -> reqwest::Response {
         self.api_client
-            .get(format!("{}/admin/dashboard/password", self.address))
+            .get(format!("{}/admin/password", self.address))
             .send()
             .await
             .expect("Failed to execute request.")

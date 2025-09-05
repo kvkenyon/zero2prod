@@ -41,7 +41,7 @@ pub async fn change_password(
     if form.new_password.expose_secret() != form.verify_new_password.expose_secret() {
         tracing::info!("new passwords are not equal");
         FlashMessage::error("The new passwords need to match").send();
-        return Ok(see_other("/admin/dashboard/password"));
+        return Ok(see_other("/admin/password"));
     }
 
     // Fetch the username so we can validate the users credentials
@@ -53,7 +53,7 @@ pub async fn change_password(
         return match e {
             AuthError::InvalidCredentials(_) => {
                 FlashMessage::error("The current password you entered is invalid").send();
-                return Ok(see_other("/admin/dashboard/password"));
+                return Ok(see_other("/admin/password"));
             }
             AuthError::UnexpectedError(_) => Err(e500(e)),
         };
@@ -69,7 +69,7 @@ pub async fn change_password(
             FlashMessage::error("Password change failed, please try again.").send();
         }
     }
-    Ok(see_other("/admin/dashboard/password"))
+    Ok(see_other("/admin/password"))
 }
 
 #[tracing::instrument(name = "Set new password", skip(pool, new_password))]

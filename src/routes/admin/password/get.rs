@@ -33,12 +33,12 @@ pub async fn change_password_form(
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <title>Admin Dashboard - Change Password</title>
+  <title>Change Password</title>
 </head>
 <body>
     <h1>Change Password</h1>
     {msg_html}
-    <form action="/admin/dashboard/password" method="post">
+    <form action="/admin/password" method="post">
       <label for="Password">Current password
       <input type="password" name="current_password" placeholder="Enter your current password">
       </label>

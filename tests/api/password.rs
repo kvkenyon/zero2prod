@@ -64,7 +64,7 @@ async fn change_password_displays_error_when_new_passwords_are_not_equal() {
     let response = app.post_change_password(&body).await;
 
     // Assert
-    assert_is_redirect_to(&response, "/admin/dashboard/password");
+    assert_is_redirect_to(&response, "/admin/password");
     let page_html = app.get_change_password_html().await;
 
     assert!(page_html.contains("The new passwords need to match"));
@@ -97,7 +97,7 @@ async fn change_password_displays_error_when_using_invalid_current_password() {
 
     let response = app.post_change_password(&body).await;
 
-    assert_is_redirect_to(&response, "/admin/dashboard/password");
+    assert_is_redirect_to(&response, "/admin/password");
     let page_html = app.get_change_password_html().await;
 
     assert!(page_html.contains("The current password you entered is invalid"));
@@ -128,7 +128,7 @@ async fn change_password_displays_success_message_on_success() {
 
     let response = app.post_change_password(&body).await;
 
-    assert_is_redirect_to(&response, "/admin/dashboard/password");
+    assert_is_redirect_to(&response, "/admin/password");
     let page_html = app.get_change_password_html().await;
 
     assert!(page_html.contains("Password changed successfully!"));
