@@ -104,7 +104,7 @@ async fn change_password_displays_error_when_using_invalid_current_password() {
 }
 
 #[tokio::test]
-async fn change_password_displays_success_message_on_success() {
+async fn you_should_be_able_to_login_with_the_new_passwords_on_success() {
     let app = spawn_app().await;
     // Login the test user and assert we redirect to the dashboard
     let response = app
@@ -132,4 +132,62 @@ async fn change_password_displays_success_message_on_success() {
     let page_html = app.get_change_password_html().await;
 
     assert!(page_html.contains("Password changed successfully!"));
+
+    let response = app.get_logout().await;
+
+    assert_is_redirect_to(&response, "/login");
+
+    let response = app
+        .post_login(&json!(
+            {
+                "username": app.user.username,
+                "password": app.user.password
+            }
+        ))
+        .await;
+
+    assert_is_redirect_to(&response, "/login");
+    let response = app
+        .post_login(&json!(
+            {
+                "username": app.user.username,
+                "password": new_password
+            }
+        ))
+        .await;
+    assert_is_redirect_to(&response, "/admin/dashboard");
+}
+
+#[tokio::test]
+async fn change_password_displays_error_message_when_new_password_is_too_weak() {
+    let app = spawn_app().await;
+    // Login the test user and assert we redirect to the dashboard
+    let response = app
+        .post_login(&json!(
+            {
+                "username": app.user.username,
+                "password": app.user.password
+            }
+        ))
+        .await;
+
+    assert_is_redirect_to(&response, "/admin/dashboard");
+
+    let new_password = "abc123";
+
+    let body = json!({
+        "current_password": app.user.password,
+        "new_password":  new_password,
+        "verify_new_password": new_password
+    });
+
+    let response = app.post_change_password(&body).await;
+
+    assert_is_redirect_to(&response, "/admin/password");
+    let page_html = app.get_change_password_html().await;
+
+    dbg!(&page_html);
+    let feedback =
+        "This is a top-100 common password.\nAdd another word or two. Uncommon words are better.\n";
+    assert!(page_html.contains(feedback));
 }

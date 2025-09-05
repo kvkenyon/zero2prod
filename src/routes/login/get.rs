@@ -1,12 +1,12 @@
 use actix_web::{HttpResponse, http::header::ContentType};
 use std::fmt::Write;
 
-use actix_web_flash_messages::{IncomingFlashMessages, Level};
+use actix_web_flash_messages::IncomingFlashMessages;
 
 pub async fn login_form(flash_messages: IncomingFlashMessages) -> HttpResponse {
-    let mut error_html = String::new();
-    for m in flash_messages.iter().filter(|m| m.level() == Level::Error) {
-        writeln!(error_html, "<p><i>{}</i></p>", m.content()).unwrap();
+    let mut msg_html = String::new();
+    for m in flash_messages.iter() {
+        writeln!(msg_html, "<p><i>{}</i></p>", m.content()).unwrap();
     }
 
     let html_template = format!(
@@ -21,7 +21,7 @@ pub async fn login_form(flash_messages: IncomingFlashMessages) -> HttpResponse {
 </head>
 <body>
     <h1>Login</h1>
-    {error_html}
+    {msg_html}
     <form action="/login" method="post">
       <label for="username">Username
         <input type="text" name="username" placeholder="Enter username">

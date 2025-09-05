@@ -1,5 +1,6 @@
 //! src/routes/admin/password/post.rs
 use crate::authentication::{AuthError, Credentials, validate_credentials};
+use crate::domain::Password;
 use crate::routes::admin::helpers::{e500, see_other};
 use crate::routes::get_username;
 use crate::session_state::TypedSession;
@@ -41,6 +42,12 @@ pub async fn change_password(
     if form.new_password.expose_secret() != form.verify_new_password.expose_secret() {
         tracing::info!("new passwords are not equal");
         FlashMessage::error("The new passwords need to match").send();
+        return Ok(see_other("/admin/password"));
+    }
+
+    let new_password = form.new_password.clone();
+    if let Err(e) = Password::parse(new_password) {
+        FlashMessage::error(e).send();
         return Ok(see_other("/admin/password"));
     }
 
