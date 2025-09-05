@@ -1,9 +1,8 @@
 //! src/routes/admin/password/post.rs
-use crate::authentication::{AuthError, Credentials, validate_credentials};
+use crate::authentication::{AuthError, Credentials, UserId, validate_credentials};
 use crate::domain::Password;
 use crate::routes::admin::helpers::{e500, see_other};
 use crate::routes::get_username;
-use crate::session_state::TypedSession;
 use actix_web::HttpResponse;
 use actix_web::web;
 use actix_web_flash_messages::FlashMessage;
@@ -23,20 +22,16 @@ pub struct FormData {
 
 #[tracing::instrument(
     name = "Handle password change",
-    skip(form, session, pool), fields(
+    skip(form, user_id, pool), fields(
     user_id=tracing::field::Empty
 ))]
 pub async fn change_password(
-    session: TypedSession,
     pool: web::Data<PgPool>,
     web::Form(form): web::Form<FormData>,
+    user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
     // Try to get the user_id from the session (redirect to login on invalid session)
-    let user_id = session.get_user_id().map_err(e500)?;
-    if user_id.is_none() {
-        return Ok(see_other("/login"));
-    }
-    let user_id = user_id.unwrap();
+    let user_id = user_id.into_inner();
 
     // Handle case where new passwords don't match
     if form.new_password.expose_secret() != form.verify_new_password.expose_secret() {
@@ -67,7 +62,7 @@ pub async fn change_password(
     }
 
     // Set the new password
-    match set_new_password(&pool, user_id, &form.new_password).await {
+    match set_new_password(&pool, *user_id, &form.new_password).await {
         Ok(_) => {
             FlashMessage::info("Password changed successfully!").send();
         }

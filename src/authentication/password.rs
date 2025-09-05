@@ -1,4 +1,4 @@
-//! src/authentication.rs
+//! src/authentication/password.rs
 use crate::telemetry;
 use anyhow::Context;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};

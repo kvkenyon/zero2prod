@@ -1,19 +1,17 @@
 //! src/routes/admin/dashboard.rs
-use crate::routes::{admin::helpers::get_username, e500, see_other};
-use crate::session_state::TypedSession;
+use crate::authentication::UserId;
+use crate::routes::{admin::helpers::get_username, e500};
+use actix_web::web;
 use actix_web::{HttpResponse, http::header::ContentType};
 use sqlx::PgPool;
 
-#[tracing::instrument(name = "Get admin dashboard", skip(pool, session))]
+#[tracing::instrument(name = "Get admin dashboard", skip(pool, user_id))]
 pub async fn admin_dashboard(
     pool: actix_web::web::Data<PgPool>,
-    session: TypedSession,
+    user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let username = if let Some(user_id) = session.get_user_id().map_err(e500)? {
-        get_username(&pool, &user_id).await.map_err(e500)?
-    } else {
-        return Ok(see_other("/login"));
-    };
+    let user_id = user_id.into_inner();
+    let username = get_username(&pool, &user_id).await.map_err(e500)?;
 
     Ok(HttpResponse::Ok()
         .content_type(ContentType::html())
