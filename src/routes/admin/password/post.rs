@@ -22,8 +22,8 @@ pub struct FormData {
 
 #[tracing::instrument(
     name = "Handle password change",
-    skip(form, user_id, pool), fields(
-    user_id=tracing::field::Empty
+    skip(form, pool), fields(
+    user_id=%*user_id
 ))]
 pub async fn change_password(
     pool: web::Data<PgPool>,

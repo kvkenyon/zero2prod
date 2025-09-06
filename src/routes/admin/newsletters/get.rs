@@ -1,16 +1,12 @@
 //! src/routes/admin/newsletters/get.rs
-use crate::authentication::UserId;
-use actix_web::{HttpResponse, http::header::ContentType, web};
+use actix_web::{HttpResponse, http::header::ContentType};
 use actix_web_flash_messages::{IncomingFlashMessages, Level};
 use std::fmt::Write;
 
-#[tracing::instrument(name = "Get publish newsletter form", skip(user_id, flash_messages))]
+#[tracing::instrument(name = "Get publish newsletter form", skip(flash_messages))]
 pub async fn publish_newsletter_form(
     flash_messages: IncomingFlashMessages,
-    user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    user_id.into_inner();
-
     let mut msg_html = String::new();
     for m in flash_messages
         .iter()
@@ -40,7 +36,7 @@ pub async fn publish_newsletter_form(
       <input id="title" type="text" name="title" placeholder="Enter a newsletter title" />
       <br />
       <br />
-      <label for="text_contentt">
+      <label for="text_content">
       Write your newsletter in plain text:
       </label>
       <textarea id="text_content" name="content_text" rows="10" cols="50" placeholder="Write your newsletter (plain text)"></textarea>

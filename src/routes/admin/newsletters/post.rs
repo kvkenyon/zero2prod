@@ -18,8 +18,8 @@ pub struct FormData {
 }
 
 #[tracing::instrument(name = "Publish a newsletter issue",
-    skip(pool, email_client, user_id ),
-    fields(user_id=tracing::field::Empty)
+    skip(form, pool, email_client),
+    fields(user_id=%*user_id)
 )]
 pub async fn publish_newsletter(
     pool: web::Data<PgPool>,
@@ -27,9 +27,6 @@ pub async fn publish_newsletter(
     user_id: web::ReqData<UserId>,
     web::Form(form): web::Form<FormData>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = user_id.into_inner();
-    tracing::Span::current().record("user_id", tracing::field::display(&user_id));
-
     let mut is_valid = true;
     if form.title.is_empty() {
         FlashMessage::error("Title is required").send();
