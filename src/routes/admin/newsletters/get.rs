@@ -34,20 +34,27 @@ pub async fn publish_newsletter_form(
     <h1>Publish Newsletter</h1>
     {msg_html}
     <form action="/admin/newsletters" method="post">
-      <label for="title">Title
-      <input type="text" name="title" placeholder="Enter a newsletter title">
+      <label for="title">
+      Title:
       </label>
+      <input id="title" type="text" name="title" placeholder="Enter a newsletter title" />
       <br />
-      <label for="content">Text content
-      <textarea  name="text_content" placeholder="Write your newsletter (plain text)">
-      </label>
       <br />
-      <label for="html_content">HTML content
-      <textarea  name="html_content" placeholder="Write your newsletter (html)">
+      <label for="text_contentt">
+      Write your newsletter in plain text:
       </label>
+      <textarea id="text_content" name="content_text" rows="10" cols="50" placeholder="Write your newsletter (plain text)"></textarea>
+      <br />
+      <br />
+      <label for="html_content">
+      Write your newsletter with HTML: 
+      </label>
+      <textarea id="html_content" name="content_html" rows="10" cols="50" placeholder="Write your newsletter (html)"></textarea>
+      <br />
       <br />
       <button type="submit">Submit</button>
      <form>
+     <a href="/admin/dashboard">Cancel</a>
 </body>
 </html>
     "#,

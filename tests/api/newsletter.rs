@@ -178,6 +178,40 @@ async fn you_can_visit_newsletter_form_when_logged_in() {
 }
 
 #[tokio::test]
+async fn submitting_with_empty_fields_shows_validation_error_flash_message() {
+    let app = spawn_app().await;
+
+    let response = app
+        .post_login(&json!(
+            {
+                "username": app.user.username,
+                "password": app.user.password
+            }
+        ))
+        .await;
+
+    assert_is_redirect_to(&response, "/admin/dashboard");
+
+    // Send empty fields
+    let response = app
+        .post_newsletters(json!({
+            "title": "",
+            "content_html": "",
+            "content_text": ""
+        }))
+        .await;
+
+    // Assert
+    assert_is_redirect_to(&response, "/admin/newsletters");
+
+    let page_html = app.get_newsletters_form_html().await;
+
+    assert!(page_html.contains("Title is required"));
+    assert!(page_html.contains("HTML content is required"));
+    assert!(page_html.contains("Text content is required"));
+}
+
+#[tokio::test]
 async fn you_can_publish_a_newsletter_when_logged_in() {
     let app = spawn_app().await;
 

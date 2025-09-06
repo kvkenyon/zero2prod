@@ -30,6 +30,26 @@ pub async fn publish_newsletter(
     let user_id = user_id.into_inner();
     tracing::Span::current().record("user_id", tracing::field::display(&user_id));
 
+    let mut is_valid = true;
+    if form.title.is_empty() {
+        FlashMessage::error("Title is required").send();
+        is_valid = false;
+    }
+
+    if form.content_html.is_empty() {
+        FlashMessage::error("HTML content is required.").send();
+        is_valid = false;
+    }
+
+    if form.content_text.is_empty() {
+        FlashMessage::error("Text content is required.").send();
+        is_valid = false;
+    }
+
+    if !is_valid {
+        return Ok(see_other("/admin/newsletters"));
+    }
+
     let confirmed_subscribers = get_confirmed_subscribers(&pool)
         .await
         .context("Failed to get confirmed subscribers")
